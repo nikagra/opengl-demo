@@ -18,19 +18,19 @@ std::string fileContents(std::string filename)
 
 GLuint makeShader(GLenum type, std::string filename)
 {
-	GLuint shader;
-	std::string s = fileContents(filename);
-	GLchar *source = (GLchar *)s.c_str();
+    GLuint shader;
+    std::string s = fileContents(filename);
+    GLchar *source = (GLchar *)s.c_str();
 
-	if (!source)
+    if (!source)
     {
         std::cerr << "Error: file contents is empty" << std::endl;
-		return 0;
+        return 0;
     }
 
-	shader = glCreateShader(type);
-	glShaderSource(shader, 1, (const GLchar**)&source, NULL);
-	glCompileShader(shader);
+    shader = glCreateShader(type);
+    glShaderSource(shader, 1, (const GLchar**)&source, NULL);
+    glCompileShader(shader);
 
     GLint result;
     glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
@@ -38,12 +38,12 @@ GLuint makeShader(GLenum type, std::string filename)
     {
         std::cerr << "Error: shader compilation error " << filename << std::endl;
 
-		GLint logLength;
-		glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
-		char *log = new char[logLength];
-		glGetShaderInfoLog(shader, logLength, NULL, log);
-		std::cout << log << std::endl;
-		delete log;
+        GLint logLength;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &logLength);
+        char *log = new char[logLength];
+        glGetShaderInfoLog(shader, logLength, NULL, log);
+        std::cout << log << std::endl;
+        delete log;
         glDeleteShader(shader);
         return 0;
     }
@@ -72,11 +72,11 @@ GLuint makeProgram(GLuint vertexShader, GLuint fragmentShader)
 
 void init()
 {
-	// Setup
+    // Setup
     glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
 
-	// Prepare shaders
-	resources.vertexShader = makeShader(GL_VERTEX_SHADER, "gldemo.v.glsl");
+    // Prepare shaders
+    resources.vertexShader = makeShader(GL_VERTEX_SHADER, "gldemo.v.glsl");
     if (resources.vertexShader == 0)
         return;
 
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
     glutInitWindowSize(640, 480);
     glutCreateWindow("OpenGL demo");
     glutDisplayFunc(&render);
-	glutReshapeFunc(&resize);
+    glutReshapeFunc(&resize);
 
     glewExperimental = GL_TRUE;
     GLenum glewResult = glewInit();
@@ -143,10 +143,10 @@ int main(int argc, char** argv)
 
     init();
 
-	std::cout << "GL_VENDOR " << glGetString(GL_VENDOR) << std::endl;
-	std::cout << "GL_RENDERER " << glGetString(GL_RENDERER) << std::endl;
-	std::cout << "GL_VERSION " << glGetString(GL_VERSION) << std::endl;
-	std::cout << "GL_SHADING_LANGUAGE_VERSION " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+    std::cout << "GL_VENDOR " << glGetString(GL_VENDOR) << std::endl;
+    std::cout << "GL_RENDERER " << glGetString(GL_RENDERER) << std::endl;
+    std::cout << "GL_VERSION " << glGetString(GL_VERSION) << std::endl;
+    std::cout << "GL_SHADING_LANGUAGE_VERSION " << glGetString(GL_SHADING_LANGUAGE_VERSION) << std::endl;
 
     glutMainLoop();
     return 0;
