@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glm/gtc/type_ptr.hpp>
 
 std::string fileContents(std::string filename)
 {
@@ -73,6 +74,9 @@ GLuint makeProgram(GLuint vertexShader, GLuint fragmentShader)
 void init()
 {
     // Setup
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_PRIMITIVE_RESTART);
+    glPrimitiveRestartIndex(0xFFFF);
     glClearColor(0.0f, 0.0f, 0.4f, 1.0f);
 
     // Prepare shaders
@@ -90,6 +94,19 @@ void init()
 
     glUseProgram(resources.program);
 
+    resources.projectionMatrixLoc = glGetUniformLocation(resources.program, "projectionMatrix");
+    resources.viewMatrixLoc = glGetUniformLocation(resources.program, "viewMatrix");
+    resources.modelMatrixLoc = glGetUniformLocation(resources.program, "modelMatrix");
+
+    resources.modelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f));
+    resources.modelMatrix = glm::rotate(resources.modelMatrix, 45.0f, glm::vec3(1.0f, 1.0f, 0.0f));
+    resources.viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.f));
+    resources.projectionMatrix = glm::perspective(60.0f, (float)resources.windowWidth / (float)resources.windowHeight, 0.1f, 100.f);
+
+    glUniformMatrix4fv(resources.viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(resources.viewMatrix));
+    glUniformMatrix4fv(resources.modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(resources.modelMatrix));
+    glUniformMatrix4fv(resources.projectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(resources.projectionMatrix));
+
     // Initalize buffers
     glGenVertexArrays(1, &resources.vertexArrayId);
     glBindVertexArray(resources.vertexArrayId);
@@ -105,7 +122,7 @@ void init()
     glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
     glBufferSubData(GL_ARRAY_BUFFER, sizeof(vertices), sizeof(colors), colors);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (const void *)sizeof(vertices));
     glEnableVertexAttribArray(0);
     glEnableVertexAttribArray(1);
@@ -113,9 +130,9 @@ void init()
 
 void render()
 {
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glDrawElements(GL_TRIANGLE_STRIP, 4, GL_UNSIGNED_SHORT, NULL);
+    glDrawElements(GL_TRIANGLE_STRIP, 17, GL_UNSIGNED_SHORT, NULL);
 
     glutSwapBuffers();
     glutPostRedisplay();
@@ -123,15 +140,25 @@ void render()
 
 void resize(int w, int h)
 {
+    resources.windowWidth = w;
+    resources.windowHeight = h;
+
+    glViewport(0, 0, resources.windowWidth, resources.windowHeight);
+
+    resources.projectionMatrix = glm::perspective(60.0f, (float)resources.windowWidth / (float)resources.windowHeight, 0.1f, 100.f);
+    glUniformMatrix4fv(resources.projectionMatrixLoc, 1, GL_FALSE, &resources.projectionMatrix[0][0]);
 }
 
 int main(int argc, char** argv)
 {
+    resources.windowWidth = 640;
+    resources.windowHeight = 480;
+
     glutInit(&argc, argv);
     glutInitContextVersion(4, 3);
     glutInitContextProfile(GLUT_CORE_PROFILE);
     glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
-    glutInitWindowSize(640, 480);
+    glutInitWindowSize(resources.windowWidth, resources.windowHeight);
     glutCreateWindow("OpenGL demo");
     glutDisplayFunc(&render);
     glutReshapeFunc(&resize);
