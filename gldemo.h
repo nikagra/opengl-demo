@@ -7,6 +7,8 @@ static struct
 {
     int windowWidth;
     int windowHeight;
+    int xRotation;
+    int yRotation;
 
     GLuint vertexArrayId;
 

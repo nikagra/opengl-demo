@@ -74,6 +74,9 @@ GLuint makeProgram(GLuint vertexShader, GLuint fragmentShader)
 void init()
 {
     // Setup
+    resources.xRotation = 0;
+    resources.yRotation = 0;
+
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(0xFFFF);
@@ -98,13 +101,10 @@ void init()
     resources.viewMatrixLoc = glGetUniformLocation(resources.program, "viewMatrix");
     resources.modelMatrixLoc = glGetUniformLocation(resources.program, "modelMatrix");
 
-    resources.modelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f));
-    resources.modelMatrix = glm::rotate(resources.modelMatrix, 45.0f, glm::vec3(1.0f, 1.0f, 0.0f));
     resources.viewMatrix = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -5.f));
     resources.projectionMatrix = glm::perspective(60.0f, (float)resources.windowWidth / (float)resources.windowHeight, 0.1f, 100.f);
 
     glUniformMatrix4fv(resources.viewMatrixLoc, 1, GL_FALSE, glm::value_ptr(resources.viewMatrix));
-    glUniformMatrix4fv(resources.modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(resources.modelMatrix));
     glUniformMatrix4fv(resources.projectionMatrixLoc, 1, GL_FALSE, glm::value_ptr(resources.projectionMatrix));
 
     // Initalize buffers
@@ -132,6 +132,10 @@ void render()
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    resources.modelMatrix = glm::scale(glm::mat4(1.0f), glm::vec3(0.8f));
+    resources.modelMatrix = glm::rotate(resources.modelMatrix, (float)resources.xRotation, glm::vec3(1.0f, 0.0f, 0.0f));
+    resources.modelMatrix = glm::rotate(resources.modelMatrix, (float)resources.yRotation, glm::vec3(0.0f, 1.0f, 0.0f));
+    glUniformMatrix4fv(resources.modelMatrixLoc, 1, GL_FALSE, glm::value_ptr(resources.modelMatrix));
     glDrawElements(GL_TRIANGLE_STRIP, 17, GL_UNSIGNED_SHORT, NULL);
 
     glutSwapBuffers();
@@ -149,6 +153,28 @@ void resize(int w, int h)
     glUniformMatrix4fv(resources.projectionMatrixLoc, 1, GL_FALSE, &resources.projectionMatrix[0][0]);
 }
 
+void keySpecialReleased(int key, int x, int y)
+{
+    switch (key)
+    {
+        case GLUT_KEY_LEFT:
+            resources.yRotation--;
+            break;
+        case GLUT_KEY_RIGHT:
+            resources.yRotation++;
+            break;
+        case GLUT_KEY_UP:
+            if (resources.xRotation > -60.0f)
+                resources.xRotation--;
+            break;
+        case GLUT_KEY_DOWN:
+            if (resources.xRotation < 60.0f)
+                resources.xRotation++;
+            break;
+    }
+    glutPostRedisplay();
+}
+
 int main(int argc, char** argv)
 {
     resources.windowWidth = 640;
@@ -162,6 +188,7 @@ int main(int argc, char** argv)
     glutCreateWindow("OpenGL demo");
     glutDisplayFunc(&render);
     glutReshapeFunc(&resize);
+    glutSpecialUpFunc(&keySpecialReleased);
 
     glewExperimental = GL_TRUE;
     GLenum glewResult = glewInit();
